@@ -2,8 +2,8 @@
 #include "LCD_4bits.h"
 #include <stdint.h>
 
-#define HIGH_NIBBLE(hVar,var) hVar= (var & 0xf0)  // hVar will hold value of high nibble of var
-#define LOW_NIBBLE(lVar,var)  lVar= (var<<4)      // lVar will hold the value of low nibble of var
+#define HIGH_NIBBLE(h_nib,data) h_nib= (data & 0xf0)  // h_nib will hold value of high nibble of data
+#define LOW_NIBBLE(l_nib,data)  l_nib= (data<<4)      // l_nib will hold the value of low nibble of data
 
 
 /* delay n milliseconds (16 MHz CPU clock) */
