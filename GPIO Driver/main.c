@@ -1,23 +1,28 @@
 #include "GPIO.h"
+#include "M4MemMap.h"
 /**
- * main.c
- * simple code to demosntrate how to use thr driver.
- * control the state of the LED using the 2 Pushbuttons
+ * simple code to demosntrate how to use the driver.
+ * LED always ON ,but Blinks when Pushing SW2
  */
-int main(void)
-{  uint8_t x;
-   uint8_t y;
+void main(void)
+{
    GPIO_Init();
-   while(1){
+   GPIO_SetInterruptEvent(1, EVENT_FALL_EDGE, MASK_ENABLED);
+   EN_INT(30);
+   while(1)
+   {
+       GPIO_Write(0, 0xff);
+   }
+}
 
-     GPIO_Read(1, &x);   
-     GPIO_Read(2, &y);
-     if(x==0){
-        GPIO_Write(0, 0xE);
-        }
-     if(y==0){
-        GPIO_Write(0, 0x0);
-        }
-  }
-
+void PortF_CallBack(void)
+{
+    int i ,j ;
+    for(i=0;i<20;i++)
+    {
+     GPIO_Write(0, 0xff);
+     for (j=0;j<50000;j++){}
+     GPIO_Write(0, 0x00);
+     for (j=0;j<50000;j++){}
+    }
 }
