@@ -122,7 +122,7 @@ GPIO_CheckType GPIO_Init(void)
 /*A function to Digital Write data to a specific group*/
 GPIO_CheckType GPIO_Write(uint8_t GroupId,uint8_t GroupData)
 {
-	const GPIO_CfgType * CfgWrhit;
+	const GPIO_CfgType * CfgWrite;
 	GPIO_CheckType RetVar;
 
 	if (( GroupId <GPIO_GROUPS_NUMBER))
