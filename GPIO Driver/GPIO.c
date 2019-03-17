@@ -174,22 +174,139 @@ GPIO_CheckType GPIO_Read(uint8_t GroupId,uint8_t* GroupDataPtr)
 /*A function to select which peripheral will be connected to a GPIO pin*/
 GPIO_CheckType GPIO_SetAlternFuntion(uint8_t GroupId,uint8_t AlternFuncId)
 {
-
+    const GPIO_CfgType * CfgAltF;
+    GPIO_CheckType RetVar;
+    uint8_t Mask;
+    uint8_t Counter;
+    if((GroupId < GPIO_GROUPS_NUMBER))
+    {
+       CfgAltF = &GPIO_ConfigParam[GroupId];
+       if((CfgAltF->UseAlterFun == 0xff) && (GPIO_GroupState[GroupId] == 1))
+       {
+           Mask = CfgAltF->PortMask;
+           Counter = 0;
+           while(Mask != 0)
+           {
+               if(Mask % 2 == 1)
+               {
+                   GPIOPCTL_REG(CfgAltF->PortId) |= (AlternFuncId<<(Counter*4));
+               }
+               else
+               {
+               }
+               Mask >>= 1;
+               Counter += 1;
+           }
+       }
+       else
+       {
+           RetVar = GPIO_NOK;
+       }
+       }
+   else
+   {
+       RetVar = GPIO_NOK;
+   }
+   return RetVar;
 }
 /*A function to Select the interrupt event for a specific GPIO Group*/
 GPIO_CheckType GPIO_SetInterruptEvent(uint8_t GroupId,GPIO_IntEventType IntEvent,GPIO_IntMaskStatus IntMaskStatus)
 {
+    const GPIO_CfgType * Cfgint;
+    GPIO_CheckType RetVar;
+    if (( GroupId <GPIO_GROUPS_NUMBER) && (GPIO_GroupState[GroupId]==1))
+    {
+        Cfgint =  & GPIO_ConfigParam[GroupId];
+        GPIOIM_REG(Cfgint->PortId) &=~ (Cfgint->PortMask);
 
+        if ((IntEvent == EVENT_LOW) || (IntEvent == EVENT_HIGH))
+        {
+            GPIOIS_REG(Cfgint->PortId) |= (Cfgint->PortMask);
+        }
+        else GPIOIS_REG(Cfgint->PortId) &=~ (Cfgint->PortMask);
+
+        if ((IntEvent == EVENT_BOTH_EDGE))
+        {
+            GPIOIBE_REG(Cfgint->PortId) |= (Cfgint->PortMask) ;
+        }
+
+        else if ((IntEvent == EVENT_LOW) || (IntEvent == EVENT_FALL_EDGE))
+        {
+            GPIOIEV_REG(Cfgint->PortId) &=~(Cfgint->PortMask);
+        }
+        else GPIOIEV_REG(Cfgint->PortId) |= (Cfgint->PortMask);
+
+        if ( IntMaskStatus == MASK_ENABLED)
+        {
+            GPIOICR_REG(Cfgint->PortId) |= (Cfgint->PortMask);
+            GPIOIM_REG (Cfgint->PortId) |= (Cfgint->PortMask);
+        }
+        RetVar =GPIO_OK ;
+    }
+    else
+    {
+        RetVar =GPIO_NOK ;
+    }
+    return RetVar ;
 }
 /*A function to clear a specific pin interrupt flag*/
 GPIO_CheckType GPIO_ClrInterruptFlag(uint8_t GroupId)
 {
-
+    const GPIO_CfgType * Cfgint;
+    GPIO_CheckType RetVar;
+    if (( GroupId <GPIO_GROUPS_NUMBER) && (GPIO_GroupState[GroupId]==1))
+       {
+        Cfgint =  & GPIO_ConfigParam[GroupId];
+        GPIOICR_REG(Cfgint->PortId) |= (Cfgint->PortMask);
+        RetVar =GPIO_OK ;
+       }
+    else
+        {
+        RetVar =GPIO_NOK ;
+        }
+    return RetVar ;
 }
 /*A function to Get a specific pin interrupt status*/
 GPIO_CheckType GPIO_GetInterruptStatus(uint8_t GroupId,GPIO_IntStatus *IntStatusPtr)
 {
+    const GPIO_CfgType * Cfgint;
+    GPIO_CheckType RetVar;
+    if (( GroupId <GPIO_GROUPS_NUMBER) && (GPIO_GroupState[GroupId]==1))
+       {
+        Cfgint =  & GPIO_ConfigParam[GroupId];
+        if (( (GPIOMIS_REG(Cfgint->PortId)) & (Cfgint->PortMask)) == (Cfgint->PortMask))
+            {
+                *IntStatusPtr =  INT_PENDING ;
+            }
+        else
+            {
+            *IntStatusPtr =  INT_INACTIVE ;
+            }
+        RetVar =GPIO_OK ;
+       }
+    else
+        {
+        RetVar =GPIO_NOK ;
+        }
+    return RetVar ;
+}
 
+// PortF interrupt handler. Must be configured in the vector table.
+void GPIO_PortF_ISR(void)
+{
+    uint8_t GroupId = groupID_Search(0x05);
+    const GPIO_CfgType * CfgPtr;
+    GPIO_IntStatus StatusPtr = INT_INACTIVE;
+    if (( GroupId <GPIO_GROUPS_NUMBER) && (GPIO_GroupState[GroupId]==1))
+       {
+        CfgPtr =  & GPIO_ConfigParam[GroupId];
+        GPIO_GetInterruptStatus(GroupId, &StatusPtr);
+        if (StatusPtr == INT_PENDING )
+        {
+            CfgPtr->CbkFnPtr();
+            GPIO_ClrInterruptFlag(GroupId);
+        }
+       }
 }
 
 static uint8_t GetPinNumber(uint8_t PinMask)
