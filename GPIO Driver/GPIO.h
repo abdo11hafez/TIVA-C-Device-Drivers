@@ -54,4 +54,8 @@ GPIO_CheckType GPIO_SetInterruptEvent(uint8_t GroupId,GPIO_IntEventType IntEvent
 GPIO_CheckType GPIO_ClrInterruptFlag(uint8_t GroupId);
 /*A function to Get a specific pin interrupt status*/
 GPIO_CheckType GPIO_GetInterruptStatus(uint8_t GroupId,GPIO_IntStatus *IntStatusPtr);
+/*PortF interrupt handler.  Must be configured in the IRQ vector table.*/
+void GPIO_PortF_ISR(void);
+/*This function is used to determine the groupID of each GPIO Port*/
+static uint8_t groupID_Search (uint8_t PortID);
 #endif
