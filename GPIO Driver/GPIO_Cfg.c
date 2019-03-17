@@ -1,5 +1,7 @@
 #include "GPIO.h"
 #include "GPIO_Cfg.h"
+extern void PortF_CallBack(void);
+
 const GPIO_CfgType GPIO_ConfigParam [GPIO_GROUPS_NUMBER] =
 		{
 			{
@@ -10,22 +12,18 @@ const GPIO_CfgType GPIO_ConfigParam [GPIO_GROUPS_NUMBER] =
 				0xff,0x00,0x00,
 				0xff,
 				0
-
-
 			},
-		        {
+         		{
 				0x05,1<<0,
 				0,0,0,
 				0x00,
 				0xff,0x00,0x00,
 				0x00,0x00,0x00,
 				0xff,
-				0
+				PortF_CallBack
+           		 },
 
-
-		         },
-
-		         {
+           		 {
 	 			0x05,1<<4,
 				0,0,0,
 				0x00,
@@ -34,5 +32,4 @@ const GPIO_CfgType GPIO_ConfigParam [GPIO_GROUPS_NUMBER] =
 				0xff,
 				0
 			 }
-				
 		};
