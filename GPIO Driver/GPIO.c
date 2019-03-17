@@ -75,13 +75,10 @@ GPIO_CheckType GPIO_Init(void)
 	GPIO_CheckType RetVar;
 	const GPIO_CfgType * CfgPtr;
 
-
 	for(LoopIndex = 0; (LoopIndex < GPIO_GROUPS_NUMBER) && (ErrorFlag == 0); LoopIndex ++)
 	{
 		if(GPIO_ConfigParam[LoopIndex].PortId < PORTS_NUMBER)
 		{
-
-
 			/*Enable port clock gate*/
 			CfgPtr = & GPIO_ConfigParam[LoopIndex];
 			RCGCGPIO_REG |= 1 << CfgPtr->PortId;
@@ -130,24 +127,20 @@ GPIO_CheckType GPIO_Write(uint8_t GroupId,uint8_t GroupData)
 
 	if (( GroupId <GPIO_GROUPS_NUMBER))
 	{
-
-		CfgWrhit =  & GPIO_ConfigParam[GroupId];
-
-		if ((CfgWrhit->PortDirection == 0xff)&&(CfgWrhit->SetPinType == 0xff)&&(CfgWrhit->UseAlterFun==0x00) &&(GPIO_GroupState[GroupId]==1 ))
+		CfgWrite =  & GPIO_ConfigParam[GroupId];
+		if ((CfgWrite->PortDirection == 0xff)&&(CfgWrite->SetPinType == 0xff)&&(CfgWrite->UseAlterFun==0x00) &&(GPIO_GroupState[GroupId]==1 ))
 		{
-
-		GPIODATA_WRITE(GroupData,CfgWrhit->PortMask,CfgWrhit->PortId);
+		GPIODATA_WRITE(GroupData,CfgWrite->PortMask,CfgWrite->PortId);
 		RetVar = GPIO_OK ;
-
-	    }else {RetVar = GPIO_NOK ; }
-
-	}else {RetVar = GPIO_NOK ; }
-
+	  	}
+		else {RetVar = GPIO_NOK ; }
+	}
+	else 
+	{
+		RetVar = GPIO_NOK ; 
+	}
 	return RetVar;
 }
-
-
-
 
 /*A function to Digital read data from a specific group*/
 GPIO_CheckType GPIO_Read(uint8_t GroupId,uint8_t* GroupDataPtr)
@@ -167,8 +160,6 @@ GPIO_CheckType GPIO_Read(uint8_t GroupId,uint8_t* GroupDataPtr)
     else {RetVar = GPIO_NOK ; }
 
     return RetVar;}
-
-
 
 
 /*A function to select which peripheral will be connected to a GPIO pin*/
@@ -209,6 +200,7 @@ GPIO_CheckType GPIO_SetAlternFuntion(uint8_t GroupId,uint8_t AlternFuncId)
    }
    return RetVar;
 }
+
 /*A function to Select the interrupt event for a specific GPIO Group*/
 GPIO_CheckType GPIO_SetInterruptEvent(uint8_t GroupId,GPIO_IntEventType IntEvent,GPIO_IntMaskStatus IntMaskStatus)
 {
@@ -249,6 +241,7 @@ GPIO_CheckType GPIO_SetInterruptEvent(uint8_t GroupId,GPIO_IntEventType IntEvent
     }
     return RetVar ;
 }
+
 /*A function to clear a specific pin interrupt flag*/
 GPIO_CheckType GPIO_ClrInterruptFlag(uint8_t GroupId)
 {
@@ -289,6 +282,27 @@ GPIO_CheckType GPIO_GetInterruptStatus(uint8_t GroupId,GPIO_IntStatus *IntStatus
         RetVar =GPIO_NOK ;
         }
     return RetVar ;
+}
+
+/ This function is used to determine the groupID of each UART channel
+static uint8_t groupID_Search (uint8_t PortID)
+{
+    uint8_t GPIO_groupID = 0;
+    const  GPIO_CfgType* CfgPtr;
+    uint8_t LoopIndex = 0;
+    if(PortID < PORTS_NUMBER)
+    {
+        for(LoopIndex = 0; LoopIndex < GPIO_GROUPS_NUMBER; LoopIndex++)
+        {
+            CfgPtr = &GPIO_ConfigParam[LoopIndex];
+            //Checking if the configuration has the required PortID
+            if(((CfgPtr->PortId) == PortID) && (CfgPtr->CbkFnPtr!=0))
+            {
+                GPIO_groupID = LoopIndex;
+            }
+        }
+    }
+    return GPIO_groupID;
 }
 
 // PortF interrupt handler. Must be configured in the vector table.
