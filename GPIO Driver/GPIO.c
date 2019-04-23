@@ -284,7 +284,7 @@ GPIO_CheckType GPIO_GetInterruptStatus(uint8_t GroupId,GPIO_IntStatus *IntStatus
     return RetVar ;
 }
 
-/ This function is used to determine the groupID of each UART channel
+/* This function is used to determine the groupID of each UART channel*/
 static uint8_t groupID_Search (uint8_t PortID)
 {
     uint8_t GPIO_groupID = 0;
